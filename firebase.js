@@ -1,0 +1,23 @@
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getFirestore } from 'firebase/firestore'
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBJ59QLCoSGJ7tbLxmDgwZxMgF1w3QncsQ",
+  authDomain: "inventory-management-df9b3.firebaseapp.com",
+  projectId: "inventory-management-df9b3",
+  storageBucket: "inventory-management-df9b3.appspot.com",
+  messagingSenderId: "736128033167",
+  appId: "1:736128033167:web:a9c46a9fe6f69b6eb7ebfa",
+  measurementId: "G-GBW0PEKV62"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const firestore = getFirestore(app)
+
+export {firestore}

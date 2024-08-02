@@ -1,8 +1,7 @@
 'use client'
-import Image from "next/image";
-import { useState, useEffect } from 'react'
-import {firestore} from '@/firebase'
-import {Box, Modal, Typography, Stack, TextField, Button} from '@mui/material'
+import { useState, useEffect } from 'react';
+import firestore from '@/firebase';
+import {Box, Modal, Typography, Stack, TextField, Button} from '@mui/material';
 import { collection, deleteDoc, doc, query, getDoc, getDocs, setDoc} from "firebase/firestore";
 
 export default function Home() {
@@ -13,7 +12,7 @@ export default function Home() {
   const updateInventory = async () => {
     const snapshot = query(collection(firestore, 'inventory'))
     const docs = await getDocs(snapshot)
-    const inventoryList = []
+    const inventoryList = [];
     docs.forEach((doc) => {
       inventoryList.push({
         name: doc.id,

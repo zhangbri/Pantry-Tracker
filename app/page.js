@@ -9,7 +9,7 @@ import ImageCapture from '../app/ImageCapture.js';
 
 import addIcon from '../images/Add.png';
 import removeIcon from '../images/Minus.png';
-import Trash from '../images/X.png';
+import Trash from '../images/x.png';
 import backgroundImage from '../images/background.png';
 import numeric from '../images/numeric.png';
 import revnumeric from '../images/revnumeric.png';

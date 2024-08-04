@@ -1,29 +1,16 @@
 {
-    "version": 2,
-    "name": "PantryMate",
-    "builds": [
-      {
-        "src": "package.json",
-        "use": "@vercel/node"
-      }
-    ],
-    "routes": [
-      {
-        "src": "/api/(.*)",
-        "dest": "/api/$1.js"
-      },
-      {
-        "src": "/(.*)",
-        "headers": {
-          "x-custom-header": "value"
-        },
-        "dest": "/public/$1"
-      }
-    ],
-    "functions": {
-      "api/**/*.js": {
-        "memory": 3008,
-        "maxDuration": 15
-      }
+  "version": 2,
+  "name": "PantryMate",
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1.js"
+    }
+  ],
+  "functions": {
+    "api/**/*.js": {
+      "memory": 3008,
+      "maxDuration": 15
     }
   }
+}

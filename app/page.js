@@ -20,6 +20,15 @@ const theme = createTheme({
   typography: {
     fontFamily: 'Arial',
   },
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 600,
+      md: 960,
+      lg: 1280,
+      xl: 1920,
+    },
+  },
   components: {
     MuiInput: {
       styleOverrides: {
@@ -94,6 +103,8 @@ export default function Home() {
   const [cameraMode, setCameraMode] = useState('initial');
   const [newItemPlaceholder, setNewItemPlaceholder] = useState("Enter New Item");
   const [searchPlaceholder, setSearchPlaceholder] = useState("Search Items");
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
 
   const updateInventory = async () => {
     const snapshot = query(collection(firestore, 'inventory'));
@@ -327,15 +338,16 @@ export default function Home() {
       display="flex"
       flexDirection="column"
       alignItems="center"
-      pt={1}
+      pt={isMobile ? 2 : 4}
       gap={2}
       sx={{
         backgroundImage: `url(${backgroundImage.src})`,
         backgroundSize: 'cover',
+        padding: isMobile ? '10px' : '20px',
       }}
     >
-      <Box position="absolute" left="20px" top="20px">
-        <Typography variant="h4" style={{ fontFamily: 'Pacifico, cursive' }}>
+      <Box position={isMobile ? 'relative' : 'absolute'} left={isMobile ? 'auto' : "20px"} top={isMobile ? 'auto' : "20px"} mb={isMobile ? 2 : 0}>
+        <Typography variant={isMobile ? "h5" : "h4"} style={{ fontFamily: 'Pacifico, cursive' }}>
           PantryMate
         </Typography>
       </Box>
@@ -343,7 +355,7 @@ export default function Home() {
           display="flex"
           flexDirection="column"
           alignItems="center"
-          width={boxSize.width}
+          width={isMobile ? "100%" : isTablet ? "90%" : boxSize.width}
           position="relative"
         >
         <Box 
@@ -367,7 +379,7 @@ export default function Home() {
             }}
             style={{
               fontFamily: 'Pacifico, cursive',
-              fontSize: '3rem',
+              fontSize: isMobile ? '2rem' : '3rem',
               textAlign: 'center',
               border: 'none',
               background: 'transparent',

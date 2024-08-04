@@ -322,16 +322,18 @@ export default function Home() {
   return (
     <ThemeProvider theme={theme}>
     <Box
-      width="100%"
-      height="100%"
-      display="flex"
-      flexDirection="column"
-      alignItems="center"
-      pt={1}
-      gap={2}
       sx={{
+        width: '100vw', 
+        height: '100vh',
         backgroundImage: `url(${backgroundImage.src})`,
         backgroundSize: 'cover',
+        backgroundPosition: 'center', 
+        backgroundRepeat: 'no-repeat', 
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        pt: 1,
+        gap: 2
       }}
     >
       <Box position="absolute" left="20px" top="20px">

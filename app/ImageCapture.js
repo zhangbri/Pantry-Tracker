@@ -20,15 +20,15 @@ function ImageCapture({ onCapture }) {
 
   const captureImage = () => {
     const context = canvasRef.current.getContext('2d');
-    context.drawImage(videoRef.current, 0, 0, 640, 480);
+    context.drawImage(videoRef.current, 0, 0, 480, 360);
     const imageDataUrl = canvasRef.current.toDataURL('image/jpeg');
     onCapture(imageDataUrl);
   };
 
   return (
     <>
-      <video ref={videoRef} width="640" height="480" autoPlay style={{ display: 'block', borderRadius: '15px' }} />
-      <canvas ref={canvasRef} width="640" height="480" style={{ display: 'none' }} />
+      <video ref={videoRef} width="480" height="360" autoPlay style={{ display: 'block', borderRadius: '15px' }} />
+      <canvas ref={canvasRef} width="480" height="360" style={{ display: 'none' }} />
       <Button 
         id="captureButton" 
         onClick={captureImage} 

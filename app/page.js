@@ -73,8 +73,6 @@ export default function Home() {
   const [newItemName, setNewItemName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [originalInventory, setOriginalInventory] = useState([]);
-  const [open, setOpen] = useState(false);
-  const [itemName, setItemName] = useState('');
   const [boxSize, setBoxSize] = useState({ width: Math.max(800, 520), height: '85vh' });
   const resizeRef = useRef(null);
   const [listName, setListName] = useState(() => {
@@ -87,10 +85,7 @@ export default function Home() {
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [isResizing, setIsResizing] = useState(false);
   const [sortType, setSortType] = useState('reverseNumeric');
-  const [showCamera, setShowCamera] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
-  const [identifiedItem, setIdentifiedItem] = useState('');
-  const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraMode, setCameraMode] = useState('initial');
   const [newItemPlaceholder, setNewItemPlaceholder] = useState("Enter New Item");
   const [searchPlaceholder, setSearchPlaceholder] = useState("Search Items");
@@ -98,14 +93,11 @@ export default function Home() {
   const updateInventory = async () => {
     const snapshot = query(collection(firestore, 'inventory'));
     const docs = await getDocs(snapshot);
-    const inventoryList = [];
-    docs.forEach((doc) => {
-      inventoryList.push({
-        id: doc.id,
-        name: doc.id,
-        ...doc.data(),
-      });
-    });
+    const inventoryList = docs.docs.map(doc => ({
+      id: doc.id,
+      name: doc.id,
+      ...doc.data(),
+    }));
     setInventory(inventoryList);
     setOriginalInventory(inventoryList);
   };
@@ -133,6 +125,7 @@ export default function Home() {
       await setDoc(docRef, { quantity: 1 });
     }
     setNewItemName('');
+    setNewItemPlaceholder("Enter New Item");
     await updateInventory();
   };
 
@@ -159,9 +152,6 @@ export default function Home() {
   useEffect(() => {
     updateInventory();
   }, []);
-
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
 
   const handleMouseDown = (e) => {
     e.preventDefault();
@@ -281,22 +271,50 @@ export default function Home() {
 
   const handleRetakePhoto = () => {
     setCapturedImage(null);
-    setIdentifiedItem('');
     setCameraMode('capture');
   };
 
   const handleDone = () => {
     setCameraMode('initial');
     setCapturedImage(null);
-    setIdentifiedItem('');
   };
 
   const handleUploadPhoto = async () => {
-    const classification = "Classified Item";
-    setIdentifiedItem(classification);
-    addItem(classification);
-    setCameraMode('capture');
-    setCapturedImage(null);
+    if (!capturedImage) return;
+  
+    try {
+      const response = await fetch('/api/classifyImage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ image: capturedImage.split(',')[1] }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        console.log('Classification data:', data);
+        const classification = data.classification;
+        
+        await addItem(classification);
+        
+        setInventory(prevInventory => {
+          const existingItem = prevInventory.find(item => item.name === classification);
+          if (existingItem) {
+            return prevInventory.map(item => 
+              item.name === classification ? { ...item, quantity: item.quantity } : item
+            );
+          } else {
+            return [...prevInventory, { id: classification, name: classification, quantity: 1 }];
+          }
+        });
+      } else {
+        console.error('Image classification failed:', data.error);
+      }
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+    }
   };
 
   const handleNewItemFocus = () => {
@@ -322,18 +340,16 @@ export default function Home() {
   return (
     <ThemeProvider theme={theme}>
     <Box
+      width="100%"
+      height="100%"
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      pt={1}
+      gap={2}
       sx={{
-        width: '100vw', 
-        height: '100vh',
         backgroundImage: `url(${backgroundImage.src})`,
         backgroundSize: 'cover',
-        backgroundPosition: 'center', 
-        backgroundRepeat: 'no-repeat', 
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        pt: 1,
-        gap: 2
       }}
     >
       <Box position="absolute" left="20px" top="20px">
@@ -601,86 +617,84 @@ export default function Home() {
               onClick={handleTakePhoto}
               sx={{ textTransform: 'capitalize' }}
             >
-              Take Photo
+              Scan Item
             </Button>
           )}
         </Box>
-      {cameraMode !== 'initial' && (
-        <Box 
-          width="640px" 
-          height="480px" 
-          mb={2} 
-          sx={{ 
-            borderRadius: '15px',
-            overflow: 'hidden'
-          }}
-        >
-          {cameraMode === 'capture' && <ImageCapture onCapture={handleCapturePhoto} />}
-          {cameraMode === 'preview' && <img src={capturedImage} alt="Captured item" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-        </Box>
-      )}
-
-      {cameraMode === 'capture' && (
-        <Box display="flex" justifyContent="center" mt={-0.5}>
-          <Button 
-            variant="contained" 
-            onClick={() => document.querySelector('#captureButton').click()}
+        {cameraMode !== 'initial' && (
+          <Box 
+            width="480px" 
+            height="360px" 
+            mb={2} 
             sx={{ 
-              mr: 1,
-              textTransform: 'capitalize'
+              borderRadius: '15px',
+              overflow: 'hidden'
             }}
           >
-            Capture Photo
-          </Button>
-          <Button 
-            variant="contained" 
-            onClick={handleDone}
-            sx={{ textTransform: 'capitalize' }}
-          >
-            Done
-          </Button>
-        </Box>
-      )}
-
-      {cameraMode === 'preview' && (
-        <Box display="flex" justifyContent="center" mt={-0.5}>
-          <Button 
-            variant="contained" 
-            onClick={handleRetakePhoto}
-            sx={{ 
-              mr: 1,
-              textTransform: 'capitalize'
-            }}
-          >
-            Retake Photo
-          </Button>
-          <Button 
-            variant="contained" 
-            onClick={handleUploadPhoto}
-            sx={{ 
-              mr: 1,
-              textTransform: 'capitalize'
-            }}
-          >
-            Upload
-          </Button>
-          <Button 
-            variant="contained" 
-            onClick={handleDone}
-            sx={{ textTransform: 'capitalize' }}
-          >
-            Done
-          </Button>
-        </Box>
-      )}
-    </Box>
+            {cameraMode === 'capture' && <ImageCapture onCapture={handleCapturePhoto} />}
+            {cameraMode === 'preview' && <img src={capturedImage} alt="Captured item" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+          </Box>
+        )}
+        {cameraMode === 'capture' && (
+          <Box display="flex" justifyContent="center" mt={-0.5}>
+            <Button 
+              variant="contained" 
+              onClick={() => document.querySelector('#captureButton').click()}
+              sx={{ 
+                mr: 1,
+                textTransform: 'capitalize'
+              }}
+            >
+              Capture Photo
+            </Button>
+            <Button 
+              variant="contained" 
+              onClick={handleDone}
+              sx={{ textTransform: 'capitalize' }}
+            >
+              Done
+            </Button>
+          </Box>
+        )}
+        {cameraMode === 'preview' && (
+          <Box display="flex" justifyContent="center" mt={-0.5}>
+            <Button 
+              variant="contained" 
+              onClick={handleRetakePhoto}
+              sx={{ 
+                mr: 1,
+                textTransform: 'capitalize'
+              }}
+            >
+              Retake Photo
+            </Button>
+            <Button 
+              variant="contained" 
+              onClick={handleUploadPhoto}
+              sx={{ 
+                mr: 1,
+                textTransform: 'capitalize'
+              }}
+            >
+              Upload
+            </Button>
+            <Button 
+              variant="contained" 
+              onClick={handleDone}
+              sx={{ textTransform: 'capitalize' }}
+            >
+              Done
+            </Button>
+          </Box>
+        )}
+      </Box>
     <Box 
-        display="flex" 
-        justifyContent="space-between" 
-        alignItems="center" 
-        width={boxSize.width}
-        mt={-0.5}
-      >
+      display="flex" 
+      justifyContent="space-between" 
+      alignItems="center" 
+      width={boxSize.width}
+      mt={-0.5}
+    >
     </Box>
   </Box>
 </ThemeProvider>

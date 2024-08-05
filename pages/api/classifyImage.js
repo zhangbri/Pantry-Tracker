@@ -1,4 +1,3 @@
-import { GoogleAuth } from 'google-auth-library';
 const vision = require('@google-cloud/vision');
 
 export default async function handler(req, res) {
@@ -27,13 +26,22 @@ export default async function handler(req, res) {
     const [labelDetectionResult] = await client.labelDetection({ image: { content: image } });
     const [objectLocalizationResult] = await client.objectLocalization({ image: { content: image } });
 
-    const labels = labelDetectionResult.labelAnnotations.filter(label => label.score >= 0.7);
-    const objects = objectLocalizationResult.localizedObjectAnnotations.filter(obj => obj.score >= 0.7);
+    // List of specific items we want to detect
+    const targetLabels = ['banana', 'mouse', 'water', 'orange', 'keyboard', 'headphones', 'glasses'];
+
+    // Filter labels and objects based on a higher threshold and target list
+    const labels = labelDetectionResult.labelAnnotations.filter(label =>
+      label.score >= 0.8 && targetLabels.includes(label.description.toLowerCase())
+    );
+
+    const objects = objectLocalizationResult.localizedObjectAnnotations.filter(obj =>
+      obj.score >= 0.8 && targetLabels.includes(obj.name.toLowerCase())
+    );
 
     const combinedResults = {};
 
     objects.forEach(obj => {
-      const name = obj.name;
+      const name = obj.name.toLowerCase();
       const confidence = obj.score;
 
       if (!combinedResults[name]) {
@@ -45,7 +53,7 @@ export default async function handler(req, res) {
     });
 
     labels.forEach(label => {
-      const name = label.description;
+      const name = label.description.toLowerCase();
       const confidence = label.score;
 
       if (!combinedResults[name]) {
@@ -61,7 +69,8 @@ export default async function handler(req, res) {
     }
 
     const classification = Object.entries(combinedResults).reduce(
-      (a, b) => (a[1].score > b[1].score ? a : b)
+      (a, b) => (a[1].score > b[1].score ? a : b),
+      ['', { score: 0 }]
     )[0];
 
     res.status(200).json({ classification });

@@ -1,17 +1,29 @@
+import { GoogleAuth } from 'google-auth-library';
 const vision = require('@google-cloud/vision');
-
-const client = new vision.ImageAnnotatorClient({
-  keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-});
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).end();
+    res.status(405).send({ message: 'Only POST requests allowed' });
+    return;
   }
 
   try {
+    // Decode the Google Cloud credentials from base64
+    const base64Credentials = process.env.GOOGLE_APPLICATION_CREDENTIALS_BASE64;
+    if (!base64Credentials) {
+      throw new Error("Environment variable GOOGLE_APPLICATION_CREDENTIALS_BASE64 is not set");
+    }
+
+    const credentialsJSON = JSON.parse(Buffer.from(base64Credentials, 'base64').toString('utf8'));
+
+    // Initialize Google Vision client with decoded credentials
+    const client = new vision.ImageAnnotatorClient({
+      credentials: credentialsJSON,
+    });
+
     const { image } = req.body;
 
+    // Perform label detection and object localization
     const [labelDetectionResult] = await client.labelDetection({ image: { content: image } });
     const [objectLocalizationResult] = await client.objectLocalization({ image: { content: image } });
 
@@ -54,7 +66,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({ classification });
   } catch (error) {
-    console.error('Error classifying image:', error);
-    res.status(500).json({ error: 'Image classification failed', details: error.message });
+    console.error('Error in classifyImage API:', error);
+    res.status(500).json({ error: 'Failed to process image classification', details: error.message });
   }
 }

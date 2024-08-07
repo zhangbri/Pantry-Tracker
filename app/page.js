@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { Box, Typography, Stack, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Box, Typography, Stack, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress } from '@mui/material';
 import { collection, deleteDoc, doc, query, getDoc, getDocs, setDoc } from "firebase/firestore";
 import ImageCapture from '../app/ImageCapture.js'; 
 import SEO from '../components/SEO'
@@ -125,6 +125,7 @@ export default function Home() {
   const [signUpError, setSignUpError] = useState('');
   const [logInError, setLogInError] = useState('');
   const [forgotPasswordError, setForgotPasswordError] = useState('');
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const updateInventory = async () => {
     try {
@@ -240,15 +241,24 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (user) {
-      fetchInventoryFromFirebase();
-      fetchListNameFromFirebase();
-    } else {
-      setInventory([]);
-      setOriginalInventory([]);
-      setListName('My List');
-    }
-  }, [user]);
+    const initializeData = async () => {
+      if (!loading) {
+        if (user) {
+          await Promise.all([
+            fetchInventoryFromFirebase(),
+            fetchListNameFromFirebase(),
+          ]);
+        } else {
+          setInventory([]);
+          setOriginalInventory([]);
+          setListName('My List');
+        }
+        setIsInitialized(true);
+      }
+    };
+  
+    initializeData();
+  }, [user, loading]);
 
   const fetchListNameFromFirebase = async () => {
     if (user) {
@@ -602,6 +612,42 @@ export default function Home() {
       action();
     }
   };
+
+  const SpinningLogo = () => {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        sx={{
+          animation: 'spin 1s linear infinite', 
+          '@keyframes spin': {
+            '0%': {
+              transform: 'rotate(0deg)',
+            },
+            '100%': {
+              transform: 'rotate(360deg)',
+            },
+          },
+        }}
+      >
+        <Image
+          src={logo}
+          alt="Loading..."
+          width={200} 
+          height={200}
+        />
+      </Box>
+    );
+  };
+
+  if (loading || !isInitialized) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+        <SpinningLogo />
+      </Box>
+    );
+  }
 
   return (
     <ThemeProvider theme={theme}>

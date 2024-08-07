@@ -6,6 +6,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Box, Typography, Stack, TextField, Button } from '@mui/material';
 import { collection, deleteDoc, doc, query, getDoc, getDocs, setDoc } from "firebase/firestore";
 import ImageCapture from '../app/ImageCapture.js'; 
+import SEO from '../components/SEO'
 
 import addIcon from '../images/Add.png';
 import removeIcon from '../images/Minus.png';
@@ -15,6 +16,7 @@ import numeric from '../images/numeric.png';
 import revnumeric from '../images/revnumeric.png';
 import alpha from '../images/alphabetical.png';
 import revalpha from '../images/revalpha.png';
+import logo from '../images/logo.png';
 
 const theme = createTheme({
   typography: {
@@ -42,10 +44,10 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          backgroundColor: '#4CAF50',
+          backgroundColor: '#A47FC4',
           color: 'white',
           '&:hover': {
-            backgroundColor: '#45a049',
+            backgroundColor: '#85B45C',
           },
         },
       },
@@ -339,24 +341,36 @@ export default function Home() {
 
   return (
     <ThemeProvider theme={theme}>
-    <Box
-      width="100%"
-      height="100%"
-      display="flex"
-      flexDirection="column"
-      alignItems="center"
-      pt={1}
-      gap={2}
-      sx={{
-        backgroundImage: `url(${backgroundImage.src})`,
-        backgroundSize: 'cover',
-      }}
-    >
-      <Box position="absolute" left="20px" top="20px">
-        <Typography variant="h4" style={{ fontFamily: 'Pacifico, cursive' }}>
-          PantryMate
-        </Typography>
-      </Box>
+      <>
+        <SEO 
+          title="PantryMate - Home"
+          description="Manage your pantry inventory with ease using PantryMate."
+          canonicalUrl="https://www.pantrymate.vercel.app"
+        />
+      <Box
+        width="100%"
+        minHeight="100vh"
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        pt={1}
+        gap={2}
+        sx={{
+          backgroundImage: `url(${backgroundImage.src})`,
+          backgroundSize: 'cover',
+          backgroundAttachment: 'fixed',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+        }}
+      >
+      <Box position="absolute" left="0px" top="-25px">
+          <Image
+            src={logo}
+            alt="PantryMate Logo"
+            width={175} 
+            height={175}  
+          />
+        </Box>
       <Box
           display="flex"
           flexDirection="column"
@@ -464,7 +478,7 @@ export default function Home() {
         </Box>
       <Box
         ref={resizeRef} 
-        border="5px solid #DEB887"
+        border="6px solid #7FC2C4"
         borderRadius="15px" 
         overflow="hidden" 
         width={boxSize.width}
@@ -482,14 +496,14 @@ export default function Home() {
       <Box
         width="100%"
         height="80px"
-        bgcolor="#DEB887"
+        bgcolor="#7FC2C4"
         display="flex"
         alignItems="center"
         justifyContent="center"
       >
         <Box flex={1} display="flex" justifyContent="center" alignItems="center">
           <Typography variant="h3" color="black" textAlign="center">
-            Item
+            Items
           </Typography>
         </Box>
         <Box flex={1} display="flex" justifyContent="center" alignItems="center">
@@ -523,9 +537,9 @@ export default function Home() {
             sx={{
               position: 'relative',
               '&:hover': {
-                backgroundColor: '#EEE8AA',
+                backgroundColor: '#C4827F',
               },
-              borderBottom: '2px solid #DEB887',
+              borderBottom: '6px solid #7FC2C4',
             }}
             position="relative"
           >
@@ -688,14 +702,16 @@ export default function Home() {
           </Box>
         )}
       </Box>
-    <Box 
-      display="flex" 
-      justifyContent="space-between" 
-      alignItems="center" 
-      width={boxSize.width}
-      mt={-0.5}
-    >
-    </Box>
-  </Box>
-</ThemeProvider>
-);}
+        <Box 
+          display="flex" 
+          justifyContent="space-between" 
+          alignItems="center" 
+          width={boxSize.width}
+          mt={-0.5}
+        >
+        </Box>
+      </Box>
+      </>
+    </ThemeProvider>
+  );
+}

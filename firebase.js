@@ -1,12 +1,7 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -17,12 +12,20 @@ const firebaseConfig = {
     measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const firestore = getFirestore(app);
-const auth = getAuth(app);
-export default firestore;
+let app, firestore, auth;
 
+try {
+    console.log('Initializing Firebase with config:', firebaseConfig);
+    app = initializeApp(firebaseConfig);
+    firestore = getFirestore(app);
+    auth = getAuth(app);
+    console.log('Firebase initialized successfully');
+} catch (error) {
+    console.error('Error initializing Firebase:', error);
+}
+
+export { auth, firestore };
+export default app;
 // const firebaseConfig = {
 //   apiKey: "AIzaSyBJ59QLCoSGJ7tbLxmDgwZxMgF1w3QncsQ",
 //   authDomain: "inventory-management-df9b3.firebaseapp.com",

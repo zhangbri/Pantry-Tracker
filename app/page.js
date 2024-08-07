@@ -1,12 +1,14 @@
 'use client'
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
-import firestore from '@/firebase';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { Box, Typography, Stack, TextField, Button } from '@mui/material';
+import { Box, Typography, Stack, TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { collection, deleteDoc, doc, query, getDoc, getDocs, setDoc } from "firebase/firestore";
 import ImageCapture from '../app/ImageCapture.js'; 
 import SEO from '../components/SEO'
+import { auth, firestore } from '../firebase';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut } from "firebase/auth";
 
 import addIcon from '../images/Add.png';
 import removeIcon from '../images/Minus.png';
@@ -49,6 +51,7 @@ const theme = createTheme({
           '&:hover': {
             backgroundColor: '#85B45C',
           },
+          textTransform: 'capitalize',
         },
       },
     },
@@ -67,6 +70,26 @@ const theme = createTheme({
         },
       },
     },
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          minHeight: '240px',
+          minWidth: '500px',
+          display: 'flex',
+          flexDirection: 'column',
+        },
+      },
+    },
+    MuiDialogContent: {
+      styleOverrides: {
+        root: {
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-start',
+        },
+      },
+    },
   },
 });
 
@@ -77,11 +100,7 @@ export default function Home() {
   const [originalInventory, setOriginalInventory] = useState([]);
   const [boxSize, setBoxSize] = useState({ width: Math.max(800, 520), height: '85vh' });
   const resizeRef = useRef(null);
-  const [listName, setListName] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('listName') || 'My List';
-    }
-  });
+  const [listName, setListName] = useState('My List');
   const [isEditingListName, setIsEditingListName] = useState(false);
   const listNameInputRef = useRef(null);
   const [hoveredIndex, setHoveredIndex] = useState(null);
@@ -91,54 +110,123 @@ export default function Home() {
   const [cameraMode, setCameraMode] = useState('initial');
   const [newItemPlaceholder, setNewItemPlaceholder] = useState("Enter New Item");
   const [searchPlaceholder, setSearchPlaceholder] = useState("Search Items");
+  const [user, loading] = useAuthState(auth);
+  const [customLists, setCustomLists] = useState([]);
+  const [currentList, setCurrentList] = useState('default');
+  const [isFrontCamera, setIsFrontCamera] = useState(true);
+  const [isSignInDialogOpen, setIsSignInDialogOpen] = useState(false);
+  const [isLogInDialogOpen, setIsLogInDialogOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [isForgotPasswordDialogOpen, setIsForgotPasswordDialogOpen] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');  
+  const imageCaptureRef = useRef(null);
+  const [signUpError, setSignUpError] = useState('');
+  const [logInError, setLogInError] = useState('');
+  const [forgotPasswordError, setForgotPasswordError] = useState('');
 
   const updateInventory = async () => {
-    const snapshot = query(collection(firestore, 'inventory'));
-    const docs = await getDocs(snapshot);
-    const inventoryList = docs.docs.map(doc => ({
-      id: doc.id,
-      name: doc.id,
-      ...doc.data(),
-    }));
-    setInventory(inventoryList);
-    setOriginalInventory(inventoryList);
+    try {
+      if (user) {
+        const snapshot = query(collection(firestore, `users/${user.uid}/inventory`));
+        const docs = await getDocs(snapshot);
+        const inventoryList = docs.docs.map(doc => ({
+          id: doc.id,
+          name: doc.id,
+          ...doc.data(),
+        }));
+        setInventory(inventoryList);
+        setOriginalInventory(inventoryList);
+      }
+    } catch (error) {
+      console.error("Error fetching inventory:", error);
+    }
   };
 
   const removeItem = async (item) => {
-    const docRef = doc(collection(firestore, 'inventory'), item);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      const { quantity } = docSnap.data();
-      if (quantity > 0) {
-        await setDoc(docRef, { quantity: quantity - 1 });
+    if (user) {
+      try {
+        const docRef = doc(firestore, `users/${user.uid}/inventory`, item);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const currentQuantity = docSnap.data().quantity;
+          const newQuantity = Math.max(0, currentQuantity - 1);
+          await setDoc(docRef, { quantity: newQuantity }, { merge: true });
+        }
+        await fetchInventoryFromFirebase();
+      } catch (error) {
+        console.error("Error updating item quantity in Firebase:", error);
       }
+    } else {
+      setInventory(prevInventory => {
+        const updatedInventory = prevInventory.map(i => 
+          i.name === item ? { ...i, quantity: Math.max(0, i.quantity - 1) } : i
+        );
+        setOriginalInventory(updatedInventory);
+        return updatedInventory;
+      });
     }
-    await updateInventory();
   };
 
   const addItem = async (itemName) => {
     if (itemName.trim() === '') return;
-    const docRef = doc(collection(firestore, 'inventory'), itemName);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      const { quantity } = docSnap.data();
-      await setDoc(docRef, { quantity: quantity + 1 });
+
+    if (user) {
+      try {
+        const docRef = doc(firestore, `users/${user.uid}/inventory`, itemName);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          await setDoc(docRef, { quantity: docSnap.data().quantity + 1 }, { merge: true });
+        } else {
+          await setDoc(docRef, { quantity: 1 });
+        }
+        await fetchInventoryFromFirebase();
+      } catch (error) {
+        console.error("Error adding item to Firebase:", error);
+      }
     } else {
-      await setDoc(docRef, { quantity: 1 });
+      setInventory(prevInventory => {
+        const existingItemIndex = prevInventory.findIndex(item => item.name === itemName);
+        let updatedInventory;
+        if (existingItemIndex !== -1) {
+          updatedInventory = prevInventory.map((item, index) => 
+            index === existingItemIndex ? { ...item, quantity: item.quantity + 1 } : item
+          );
+        } else {
+          updatedInventory = [...prevInventory, { id: itemName, name: itemName, quantity: 1 }];
+        }
+        setOriginalInventory(updatedInventory);
+        return updatedInventory;
+      });
     }
+
     setNewItemName('');
     setNewItemPlaceholder("Enter New Item");
-    await updateInventory();
   };
 
-  const handleItemEdit = (index, field, value) => {
-    const newInventory = [...inventory];
-    if (field === 'quantity') {
-      value = Math.max(0, parseInt(value) || 0);
+
+  const handleItemEdit = async (index, field, value) => {
+    if (user) {
+      try {
+        const item = inventory[index];
+        if (field === 'name' && item.name !== value) {
+          await deleteDoc(doc(firestore, `users/${user.uid}/inventory`, item.name));
+          await setDoc(doc(firestore, `users/${user.uid}/inventory`, value), { quantity: item.quantity });
+        } else if (field === 'quantity') {
+          const newQuantity = Math.max(0, parseInt(value) || 0);
+          await setDoc(doc(firestore, `users/${user.uid}/inventory`, item.name), { quantity: newQuantity }, { merge: true });
+        }
+        await fetchInventoryFromFirebase();
+      } catch (error) {
+        console.error("Error updating item in Firebase:", error);
+      }
+    } else {
+      setInventory(newInventory);
+      setOriginalInventory(newInventory);
     }
-    newInventory[index][field] = value;
-    setInventory(newInventory);
   };
+
 
   const handleItemSubmit = async (index) => {
     const item = inventory[index];
@@ -152,8 +240,49 @@ export default function Home() {
   };
 
   useEffect(() => {
-    updateInventory();
-  }, []);
+    if (user) {
+      fetchInventoryFromFirebase();
+      fetchListNameFromFirebase();
+    } else {
+      setInventory([]);
+      setOriginalInventory([]);
+      setListName('My List');
+    }
+  }, [user]);
+
+  const fetchListNameFromFirebase = async () => {
+    if (user) {
+      try {
+        const docRef = doc(firestore, `users/${user.uid}/settings`, 'listName');
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setListName(docSnap.data().name);
+        } else {
+          await setDoc(docRef, { name: 'My List' });
+          setListName('My List');
+        }
+      } catch (error) {
+        console.error("Error fetching list name:", error);
+      }
+    }
+  };
+
+  const fetchInventoryFromFirebase = async () => {
+    if (user) {
+      try {
+        const snapshot = await getDocs(collection(firestore, `users/${user.uid}/inventory`));
+        const inventoryList = snapshot.docs.map(doc => ({
+          id: doc.id,
+          name: doc.id,
+          quantity: doc.data().quantity,
+        }));
+        setInventory(inventoryList);
+        setOriginalInventory(inventoryList);
+      } catch (error) {
+        console.error("Error fetching inventory:", error);
+      }
+    }
+  };
 
   const handleMouseDown = (e) => {
     e.preventDefault();
@@ -184,21 +313,47 @@ export default function Home() {
     setListName(event.target.value);
   };
 
-  const handleListNameSubmit = () => {
+  const handleListNameSubmit = async () => {
     setIsEditingListName(false);
-    localStorage.setItem('listName', listName);
+    if (user) {
+      try {
+        const docRef = doc(firestore, `users/${user.uid}/settings`, 'listName');
+        await setDoc(docRef, { name: listName });
+        console.log("List name saved successfully");
+      } catch (error) {
+        console.error("Error saving list name:", error);
+      }
+    } else {
+      localStorage.setItem('listName', listName);
+    }
   };
 
   const deleteItem = async (item) => {
-    await deleteDoc(doc(collection(firestore, 'inventory'), item));
-    await updateInventory();
+    if (user) {
+      try {
+        await deleteDoc(doc(firestore, `users/${user.uid}/inventory`, item));
+        await fetchInventoryFromFirebase();
+      } catch (error) {
+        console.error("Error deleting item from Firebase:", error);
+      }
+    } else {
+      setInventory(prevInventory => {
+        const updatedInventory = prevInventory.filter(i => i.name !== item);
+        setOriginalInventory(updatedInventory);
+        return updatedInventory;
+      });
+    }
   };
 
   const handleSearch = () => {
-    const filteredInventory = originalInventory.filter(item => 
-      item.name.toLowerCase().startsWith(searchTerm.toLowerCase())
-    );
-    setInventory(filteredInventory);
+    if (searchTerm.trim() === '') {
+      setInventory(originalInventory);
+    } else {
+      const filteredInventory = originalInventory.filter(item => 
+        item.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setInventory(filteredInventory);
+    }
   };
   
   const handleSort = () => {
@@ -260,12 +415,13 @@ export default function Home() {
   const handleReset = () => {
     setInventory(originalInventory);
     setSearchTerm('');
+    setSearchPlaceholder("Search Items");
   };
 
   const handleTakePhoto = () => {
     setCameraMode('capture');
   };
-
+  
   const handleCapturePhoto = (imageDataUrl) => {
     setCapturedImage(imageDataUrl);
     setCameraMode('preview');
@@ -339,6 +495,114 @@ export default function Home() {
     }
   };
 
+  const handleSignInClick = () => {
+    setSignUpError('');
+    setIsSignInDialogOpen(true);
+  };
+
+  const handleLogInClick = () => {
+    setLogInError('');
+    setIsLogInDialogOpen(true);
+  };
+
+  const handleLogOut = async () => {
+    try {
+      await signOut(auth);
+      setInventory([]);
+      setOriginalInventory([]);
+      setListName('My List');
+      console.log("User logged out successfully");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
+  const handleSignIn = async () => {
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      setIsSignInDialogOpen(false);
+      resetAuthFields();
+    } catch (error) {
+      console.error("Error signing up:", error);
+      if (error.code === 'auth/email-already-in-use') {
+        setSignUpError('This email is already registered. Please use a different email or try logging in.');
+      } else if (error.code === 'auth/weak-password') {
+        setSignUpError('Your password is too weak. Please choose a stronger password.');
+      } else {
+        setSignUpError('Please enter a valid email and password.');
+      }
+    }
+  };
+
+  const handleLogIn = async () => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      setIsLogInDialogOpen(false);
+      resetAuthFields();
+    } catch (error) {
+      console.error("Error logging in:", error);
+      if (error.code === 'auth/user-not-found') {
+        setLogInError('No account found with this email address.');
+      } else if (error.code === 'auth/wrong-password') {
+        setLogInError('Your password is incorrect, please try again.');
+      } else {
+        setLogInError('Please enter a valid email and password.');
+      }
+    }
+  };
+
+  const handleCameraFlip = () => {
+    setIsFrontCamera(prev => !prev);
+  };
+
+  const handleAddItemKeyPress = (event) => {
+    if (event.key === 'Enter') {
+      addItem(newItemName);
+    }
+  };
+
+  const handleSearchKeyPress = (event) => {
+    if (event.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  const handleForgotPasswordClick = () => {
+    resetAuthFields();
+    setIsLogInDialogOpen(false);
+    setIsForgotPasswordDialogOpen(true);
+  };
+  
+  const handleForgotPassword = async () => {
+    if (!forgotPasswordEmail) {
+      setForgotPasswordError('Please enter your email address');
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, forgotPasswordEmail);
+      setIsForgotPasswordDialogOpen(false);
+      resetAuthFields();
+    } catch (error) {
+      console.error("Error sending password reset email:", error);
+      setForgotPasswordError('No account found with this email address.');
+    }
+  };
+
+  const resetAuthFields = () => {
+    setEmail('');
+    setPassword('');
+    setForgotPasswordEmail('');
+    setSignUpError('');
+    setLogInError('');
+    setForgotPasswordError('');
+  };
+
+  const handleKeyPress = (event, action) => {
+    if (event.key === 'Enter') {
+      action();
+    }
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <>
@@ -364,13 +628,13 @@ export default function Home() {
         }}
       >
       <Box position="absolute" left="0px" top="-25px">
-          <Image
-            src={logo}
-            alt="PantryMate Logo"
-            width={175} 
-            height={175}  
-          />
-        </Box>
+        <Image
+          src={logo}
+          alt="PantryMate Logo"
+          width={175} 
+          height={175}  
+        />
+      </Box>
       <Box
           display="flex"
           flexDirection="column"
@@ -414,6 +678,7 @@ export default function Home() {
           <TextField
             value={newItemName}
             onChange={(e) => setNewItemName(e.target.value)}
+            onKeyPress={handleAddItemKeyPress}
             placeholder={newItemPlaceholder}
             variant="outlined"
             size="small"
@@ -430,13 +695,13 @@ export default function Home() {
           <Button 
             variant="contained" 
             onClick={() => addItem(newItemName)}
-            sx={{ textTransform: 'capitalize' }}
           >
             Add
           </Button>
           <TextField
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {setSearchTerm(e.target.value), handleSearch();}}
+            onKeyPress={handleSearchKeyPress}
             placeholder={searchPlaceholder}
             variant="outlined"
             size="small"
@@ -453,14 +718,12 @@ export default function Home() {
           <Button 
             variant="contained" 
             onClick={handleSearch}
-            sx={{ textTransform: 'capitalize' }}
             >
               Search
           </Button>
           <Button 
             variant="contained" 
             onClick={handleReset}
-            sx={{ textTransform: 'capitalize' }}
             >
               Reset
           </Button>
@@ -470,7 +733,6 @@ export default function Home() {
             sx={{ 
               display: 'flex',
               alignItems: 'center',
-              textTransform: 'capitalize'
             }}
           >
             {getSortButtonContent()}
@@ -629,7 +891,6 @@ export default function Home() {
             <Button 
               variant="contained" 
               onClick={handleTakePhoto}
-              sx={{ textTransform: 'capitalize' }}
             >
               Scan Item
             </Button>
@@ -642,10 +903,17 @@ export default function Home() {
             mb={2} 
             sx={{ 
               borderRadius: '15px',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              position: 'relative'
             }}
           >
-            {cameraMode === 'capture' && <ImageCapture onCapture={handleCapturePhoto} />}
+            {cameraMode === 'capture' && (
+              <ImageCapture 
+                onCapture={handleCapturePhoto} 
+                isFrontCamera={isFrontCamera} 
+                onFlipCamera={handleCameraFlip}
+              />
+            )}
             {cameraMode === 'preview' && <img src={capturedImage} alt="Captured item" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
           </Box>
         )}
@@ -653,10 +921,21 @@ export default function Home() {
           <Box display="flex" justifyContent="center" mt={-0.5}>
             <Button 
               variant="contained" 
-              onClick={() => document.querySelector('#captureButton').click()}
+              onClick={() => {
+                if (cameraMode === 'capture') {
+                  const imageCaptureElement = document.querySelector('video');
+                  if (imageCaptureElement) {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = imageCaptureElement.videoWidth;
+                    canvas.height = imageCaptureElement.videoHeight;
+                    canvas.getContext('2d').drawImage(imageCaptureElement, 0, 0);
+                    const imageDataUrl = canvas.toDataURL('image/jpeg');
+                    handleCapturePhoto(imageDataUrl);
+                  }
+                }
+              }}
               sx={{ 
                 mr: 1,
-                textTransform: 'capitalize'
               }}
             >
               Capture Photo
@@ -664,7 +943,6 @@ export default function Home() {
             <Button 
               variant="contained" 
               onClick={handleDone}
-              sx={{ textTransform: 'capitalize' }}
             >
               Done
             </Button>
@@ -677,7 +955,6 @@ export default function Home() {
               onClick={handleRetakePhoto}
               sx={{ 
                 mr: 1,
-                textTransform: 'capitalize'
               }}
             >
               Retake Photo
@@ -687,7 +964,6 @@ export default function Home() {
               onClick={handleUploadPhoto}
               sx={{ 
                 mr: 1,
-                textTransform: 'capitalize'
               }}
             >
               Upload
@@ -695,7 +971,6 @@ export default function Home() {
             <Button 
               variant="contained" 
               onClick={handleDone}
-              sx={{ textTransform: 'capitalize' }}
             >
               Done
             </Button>
@@ -712,6 +987,174 @@ export default function Home() {
         </Box>
       </Box>
       </>
+      <Box 
+        position="fixed" 
+        top="20px" 
+        right="20px" 
+        zIndex="1000"
+        display="flex"
+        gap={2}
+      >
+        {user ? (
+          <Button 
+            variant="contained" 
+            onClick={handleLogOut} 
+            style={{ width: '85px', position: 'absolute', right: '0px' }}
+          >
+            Log Out
+          </Button>
+        ) : (
+          <>
+            <Button 
+              variant="contained" 
+              onClick={handleSignInClick} 
+              style={{ width: '85px', position: 'absolute', right: '90px' }}
+            >
+              Sign Up
+            </Button>
+            <Button 
+              variant="contained" 
+              onClick={handleLogInClick} 
+              style={{ width: '75px', position: 'absolute', right: '0px' }}
+            >
+              Log In
+            </Button>
+          </>
+        )}
+      </Box>
+
+      <Dialog 
+        open={isSignInDialogOpen} 
+        onClose={() => {
+          setIsSignInDialogOpen(false);
+          resetAuthFields();
+        }}
+      >
+        <DialogTitle>Sign Up</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Email Address"
+            type="email"
+            fullWidth
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyPress={(e) => handleKeyPress(e, handleSignIn)}
+          />
+          <TextField
+            margin="dense"
+            label="Password"
+            type="password"
+            fullWidth
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyPress={(e) => handleKeyPress(e, handleSignIn)}
+          />
+          {signUpError && (
+            <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+              {signUpError}
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => {
+            setIsSignInDialogOpen(false);
+            resetAuthFields();
+          }}>Cancel</Button>
+          <Button onClick={handleSignIn}>Sign Up</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog 
+        open={isLogInDialogOpen} 
+        onClose={() => {
+          setIsLogInDialogOpen(false);
+          resetAuthFields();
+        }}
+      >
+        <DialogTitle>Log In</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Email Address"
+            type="email"
+            fullWidth
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onKeyPress={(e) => handleKeyPress(e, handleLogIn)}
+          />
+          <TextField
+            margin="dense"
+            label="Password"
+            type="password"
+            fullWidth
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyPress={(e) => handleKeyPress(e, handleLogIn)}
+          />
+          {logInError && (
+            <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+              {logInError}
+            </Typography>
+          )}
+        </DialogContent>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, pt: 0 }}>
+          <Button
+            onClick={handleForgotPasswordClick}
+            sx={{ textTransform: 'none' }}
+          >
+            Forgot Password
+          </Button>
+          <Box>
+            <Button onClick={() => {
+              setIsLogInDialogOpen(false);
+              resetAuthFields();
+            }} sx={{ mr: 1 }}>Cancel</Button>
+            <Button onClick={handleLogIn}>Log In</Button>
+          </Box>
+        </Box>
+      </Dialog>
+
+      <Dialog 
+        open={isForgotPasswordDialogOpen} 
+        onClose={() => {
+          setIsForgotPasswordDialogOpen(false);
+          resetAuthFields();
+        }}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Forgot Password</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Enter your email to reset your password.
+          </Typography>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Email Address"
+            type="email"
+            fullWidth
+            value={forgotPasswordEmail}
+            onChange={(e) => setForgotPasswordEmail(e.target.value)}
+            onKeyPress={(e) => handleKeyPress(e, handleForgotPassword)}
+          />
+          {forgotPasswordError && (
+            <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+              {forgotPasswordError}
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => {
+            setIsForgotPasswordDialogOpen(false);
+            resetAuthFields();
+          }}>Cancel</Button>
+          <Button onClick={handleForgotPassword}>Send Reset Mail</Button>
+        </DialogActions>
+      </Dialog>
     </ThemeProvider>
   );
 }

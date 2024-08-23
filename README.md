@@ -40,10 +40,10 @@ npm run dev
 My Website: https://pantrymate.vercel.app/
 
 ## 📁 Directory Structure
-- ImageCapture.js - React component for capturing images using the device's - camera.
-- globals.css - Global styles for the website, including custom fonts and responsive design.
-- layout.js - Defines the page layout and includes meta tags for SEO and Google Analytics.
-- page.js - Main page for displaying and managing the pantry inventory, with interactive elements.
+- `ImageCapture.js` - React component for capturing images using the device's - camera.
+- `globals.css` - Global styles for the website, including custom fonts and responsive design.
+- `layout.js` - Defines the page layout and includes meta tags for SEO and Google Analytics.
+- `page.js` - Main page for displaying and managing the pantry inventory, with interactive elements.
 
 ## 📸 Screenshots
 <p align="center">

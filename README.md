@@ -1,4 +1,4 @@
-# ⚖️ PantryMate 🍽️
+# 🛒 PantryMate ⚖️
 
 ## 🌟 Introduction
 Welcome to the Pantry Tracker project repository! 🚀 This repository contains the codebase for an AI-powered platform designed to help users efficiently manage their pantry. With real-time inventory tracking, the site simplifies kitchen organization, offering a user-friendly and intuitive experience. Whether you're managing your personal kitchen or a larger inventory, this platform ensures you stay organized and never run out of essentials.

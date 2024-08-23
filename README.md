@@ -47,11 +47,11 @@ My Website: https://pantrymate.vercel.app/
 
 ## 📸 Screenshots
 <p align="center">
-  <img width="45%" alt="HomeScreen" src="https://github.com/zhangbri/Pantry-Tracker/blob/main/PantryMate.png">
-  <img width="45%" alt="Pantry List" src="https://github.com/zhangbri/Pantry-Tracker/blob/main/PantryList.png">
+  <img width="49.7%" alt="HomeScreen" src="https://github.com/zhangbri/Pantry-Tracker/blob/main/PantryMate.png">
+  <img width="49.7%" alt="Pantry List" src="https://github.com/zhangbri/Pantry-Tracker/blob/main/PantryList.png">
 </p>
 <p align="center">
-  <img width="45%" alt="Image Capture" src="https://github.com/zhangbri/Pantry-Tracker/blob/main/ImageCapture.png">
+  <img width="50%" alt="Image Capture" src="https://github.com/zhangbri/Pantry-Tracker/blob/main/ImageCapture.png">
 </p>
 
 ## 📬 Contact

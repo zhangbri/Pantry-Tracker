@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# ⚖️ PantryMate 🍽️
 
-## Getting Started
+## 🌟 Introduction
+Welcome to the Pantry Tracker project repository! 🚀 This repository contains the codebase for an AI-powered platform designed to help users efficiently manage their pantry. With real-time inventory tracking, the site simplifies kitchen organization, offering a user-friendly and intuitive experience. Whether you're managing your personal kitchen or a larger inventory, this platform ensures you stay organized and never run out of essentials.
 
-First, run the development server:
+## 💡 Project Features
+- **Real-Time Inventory Management:** 📊 Automatically tracks and updates your pantry inventory, helping you stay organized.
+- **User Authentication:** 🔑 Secure login functionality to manage personal pantry items privately.
+- **Intuitive Interface:** 🧭 A clean, easy-to-navigate dashboard for adding, editing, and removing pantry items.
+- **Interactive Elements:** 💥 Dynamic UI elements for a seamless user experience.
+- **External Links:** 🔗 Integrates with useful resources to enhance the user experience.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🛠️ Technologies 
+- **HTML:** 📝 Provides structure to the website's clean and interactive pages.
+- **CSS:** 🎨 Styles the platform for a sleek, modern design, including responsive features.
+- **JavaScript:** ⚙️ Powers the interactive features and real-time inventory updates.
+- **Next.js:** ⚡ Ensures fast server-side rendering for optimized performance.
+- **Firebase:** 🔥 Manages user authentication and database storage for secure and efficient data handling.
+
+## 🚀 Quick Start
+**Clone the repository**
 ```
+git clone https://github.com/zhangbri/Pantry-Tracker.git
+```
+**Navigate to the project folder**
+```
+npm install
+```
+**Install dependencies**
+```
+npm install
+```
+**Start the development server**
+```
+npm run dev
+```
+**Open** http://localhost:3000 **in your web browser to view the app.**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Live Demo 🔗
+My Website: https://pantrymate.vercel.app/
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## 📁 Directory Structure
+- ImageCapture.js - React component for capturing images using the device's - camera.
+- globals.css - Global styles for the website, including custom fonts and responsive design.
+- layout.js - Defines the page layout and includes meta tags for SEO and Google Analytics.
+- page.js - Main page for displaying and managing the pantry inventory, with interactive elements.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## 📸 Screenshots
+<p align="center">
+  <img width="45%" alt="dashboard" src="https://github.com/zhangbri/Pantry-Tracker/assets/115335041/dashboard_view.png">
+  <img width="45%" alt="add_item" src="https://github.com/zhangbri/Pantry-Tracker/assets/115335041/add_item_view.png">
+</p>
+<p align="center">
+  <img width="45%" alt="edit_item" src="https://github.com/zhangbri/Pantry-Tracker/assets/115335041/edit_item_view.png">
+  <img width="45%" alt="inventory_list" src="https://github.com/zhangbri/Pantry-Tracker/assets/115335041/inventory_list_view.png">
+</p>
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## 📬 Contact
+Have any questions or suggestions? Feel free to reach out via email at [zhangbri@umich.edu](mailto:zhangbri@umich.edu), or connect with me on [LinkedIn](https://www.linkedin.com/in/zhangbri/). I'm open to discussions, collaborations, and feedback.

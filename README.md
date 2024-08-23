@@ -8,7 +8,7 @@ Welcome to the Pantry Tracker project repository! 🚀 This repository contains 
 - **User Authentication:** 🔑 Secure login functionality to manage personal pantry items privately.
 - **Intuitive Interface:** 🧭 A clean, easy-to-navigate dashboard for adding, editing, and removing pantry items.
 - **Interactive Elements:** 💥 Dynamic UI elements for a seamless user experience.
-- **External Links:** 🔗 Integrates with useful resources to enhance the user experience.
+- **AI-Powered Image Capture:** 📸 Easily capture images of pantry items and let AI classification automatically add them to your inventory list.
 
 ## 🛠️ Technologies 
 - **HTML:** 📝 Provides structure to the website's clean and interactive pages.

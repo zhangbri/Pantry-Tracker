@@ -24,7 +24,7 @@ git clone https://github.com/zhangbri/Pantry-Tracker.git
 ```
 **Navigate to the project folder**
 ```
-npm install
+cd Pantry-Tracker
 ```
 **Install dependencies**
 ```

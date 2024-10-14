@@ -3,7 +3,7 @@
 ## 🌟 Introduction
 Welcome to the Pantry Tracker project repository! 🚀 This repository contains the codebase for a platform designed to help users efficiently manage their pantry. With real-time inventory tracking and AI-powered object classification from images, the site simplifies kitchen organization, offering a user-friendly and intuitive experience. Whether you're managing your personal kitchen or a larger inventory, this platform ensures you stay organized and never run out of essentials.
 
-## 💡 Project Features
+## 💡 Features
 - **Real-Time Inventory Management:** 📊 Automatically tracks and updates your pantry inventory, helping you stay organized.
 - **User Authentication:** 🔑 Secure login functionality to manage personal pantry items privately.
 - **Intuitive Interface:** 🧭 A clean, easy-to-navigate dashboard for adding, editing, and removing pantry items.
@@ -17,7 +17,7 @@ Welcome to the Pantry Tracker project repository! 🚀 This repository contains 
 - **Next.js:** ⚡ Ensures fast server-side rendering for optimized performance.
 - **Firebase:** 🔥 Manages user authentication and database storage for secure and efficient data handling.
 
-## 🚀 Quick Start
+## 🚀 Installation and Setup
 **Clone the repository**
 ```
 git clone https://github.com/zhangbri/Pantry-Tracker.git

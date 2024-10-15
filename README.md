@@ -1,23 +1,23 @@
 # 🛒 PantryMate ⚖️
 
 ## 🌟 Introduction
-Welcome to the Pantry Tracker project repository! 🚀 This repository contains the codebase for a platform designed to help users efficiently manage their pantry. With real-time inventory tracking and AI-powered object classification from images, the site simplifies kitchen organization, offering a user-friendly and intuitive experience. Whether you're managing your personal kitchen or a larger inventory, this platform ensures you stay organized and never run out of essentials.
+Welcome to the Pantry Tracker project repository! This repository contains the codebase for a platform designed to help users efficiently manage their pantry. With real-time inventory tracking and AI-powered object classification from images, this site simplifies organization and offers a user-friendly and intuitive experience.
 
 ## 💡 Features
-- **Real-Time Inventory Management:** 📊 Automatically tracks and updates your pantry inventory, helping you stay organized.
-- **User Authentication:** 🔑 Secure login functionality to manage personal pantry items privately.
-- **Intuitive Interface:** 🧭 A clean, easy-to-navigate dashboard for adding, editing, and removing pantry items.
-- **Interactive Elements:** 💥 Dynamic UI elements for a seamless user experience.
-- **AI-Powered Image Capture:** 📸 Easily capture images of pantry items and let AI classification automatically add them to your inventory list.
+- **Real-Time Inventory Management:** Automatically tracks and updates your pantry inventory, helping you stay organized.
+- **User Authentication:** Secure login functionality to manage personal pantry items privately.
+- **Intuitive Interface:** A clean, easy-to-navigate dashboard for adding, editing, and removing pantry items.
+- **Interactive Elements:** Dynamic UI elements for a seamless user experience.
+- **AI-Powered Image Capture:** Easily capture images of pantry items and let AI classification automatically add them to your inventory list.
 
-## 🛠️ Technologies 
-- **HTML:** 📝 Provides structure to the website's clean and interactive pages.
-- **CSS:** 🎨 Styles the platform for a sleek, modern design, including responsive features.
-- **JavaScript:** ⚙️ Powers the interactive features and real-time inventory updates.
-- **Next.js:** ⚡ Ensures fast server-side rendering for optimized performance.
-- **Firebase:** 🔥 Manages user authentication and database storage for secure and efficient data handling.
+## 💻 Technologies 
+- **HTML:** Provides structure to the website's clean and interactive pages.
+- **CSS:** Styles the platform for a sleek, modern design, including responsive features.
+- **JavaScript:** Powers the interactive features and real-time inventory updates.
+- **Next.js:** Ensures fast server-side rendering for optimized performance.
+- **Firebase:** Manages user authentication and database storage for secure and efficient data handling.
 
-## 🚀 Installation and Setup
+## 🛠️ Installation and Setup
 **Clone the repository**
 ```
 git clone https://github.com/zhangbri/Pantry-Tracker.git
@@ -46,7 +46,7 @@ npm run dev
 ```
 **Open** http://localhost:3000 **in your web browser to view the app.**
 
-## Live Demo 🔗
+## 🔗 Live Demo
 My Website: https://pantrymate.vercel.app/
 
 ## 📁 Directory Structure

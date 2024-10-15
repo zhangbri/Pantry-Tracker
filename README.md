@@ -65,4 +65,4 @@ My Website: https://pantrymate.vercel.app/
 </p>
 
 ## 📬 Contact
-Have any questions or suggestions? Feel free to reach out via email at [zhangbri@umich.edu](mailto:zhangbri@umich.edu), or connect with me on [LinkedIn](https://www.linkedin.com/in/zhangbri/). I'm open to discussions, collaborations, and feedback.
+For inquiries or feedback, please reach out via email at [zhangbri@umich.edu](mailto:zhangbri@umich.edu) or connect with me on [LinkedIn](https://www.linkedin.com/in/zhangbri/).
